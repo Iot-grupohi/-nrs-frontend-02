@@ -18,6 +18,7 @@ app.use(express.json());
 const blockedFiles = [
     'firebase-config.js',
     'firebase-config.js.bak',
+    'firebase-init.js',  // Bloquear o arquivo estático
     '.env',
     '.env.local',
     '.env.production',
@@ -25,6 +26,89 @@ const blockedFiles = [
     'package-lock.json',
     'server.js'
 ];
+
+// Endpoint dinâmico para firebase-init.js (injeta credenciais do .env)
+app.get('/firebase-init.js', (req, res) => {
+    const firebaseInitScript = `
+// Inicialização do Firebase - Credenciais injetadas do servidor
+// NÃO MODIFIQUE ESTE ARQUIVO - Ele é gerado dinamicamente pelo servidor
+
+let db = null;
+let firebaseInitialized = false;
+let initializationPromise = null;
+
+// Configuração do Firebase (injetada do .env do servidor)
+const firebaseConfig = ${JSON.stringify({
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    databaseURL: process.env.FIREBASE_DATABASE_URL,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID
+}, null, 4)};
+
+// Função para inicializar o Firebase
+async function initializeFirebase() {
+    if (firebaseInitialized) {
+        return { db, initialized: true };
+    }
+    if (initializationPromise) {
+        return initializationPromise;
+    }
+    initializationPromise = (async () => {
+        try {
+            console.log('Iniciando inicialização do Firebase...');
+            if (!firebase.apps || firebase.apps.length === 0) {
+                firebase.initializeApp(firebaseConfig);
+                console.log('Firebase App inicializado');
+            }
+            db = firebase.firestore();
+            window.db = db;
+            firebaseInitialized = true;
+            console.log('✅ Firebase inicializado com sucesso!');
+            return { db, initialized: true };
+        } catch (error) {
+            console.error('❌ Erro ao inicializar Firebase:', error);
+            initializationPromise = null;
+            throw error;
+        }
+    })();
+    return initializationPromise;
+}
+
+// Função helper para aguardar inicialização
+window.waitForFirebase = async function() {
+    if (firebaseInitialized) {
+        return { db, initialized: true };
+    }
+    return await initializeFirebase();
+};
+
+// Inicializa automaticamente quando o script é carregado
+(async () => {
+    try {
+        await initializeFirebase();
+    } catch (error) {
+        console.error('Erro na inicialização automática do Firebase:', error);
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro de Conexão',
+                text: 'Não foi possível conectar ao Firebase. Por favor, recarregue a página.',
+                confirmButtonText: 'Recarregar'
+            }).then(() => {
+                window.location.reload();
+            });
+        }
+    }
+})();
+`;
+    
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.send(firebaseInitScript);
+});
 
 // Serve arquivos estáticos com proteção
 app.use(express.static(path.join(__dirname, 'web-dashboard'), {

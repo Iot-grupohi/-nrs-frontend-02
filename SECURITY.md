@@ -27,18 +27,21 @@
 - ✅ Redirect automático HTTP → HTTPS
 
 ### Firebase Configuration
-**Por que as credenciais Firebase estão no código frontend?**
+**Como as credenciais Firebase são gerenciadas:**
 
-As Firebase API keys são **públicas por design** (veja [documentação oficial](https://firebase.google.com/docs/projects/api-keys)):
-- Firebase API keys **NÃO** são secrets como senhas
-- São projetadas para serem incluídas em código público
-- A segurança real vem das **Firebase Security Rules**, não da obscuridade das keys
+- ✅ Credenciais armazenadas no arquivo `.env` do servidor (nunca commitado)
+- ✅ Arquivo `firebase-init.js` **bloqueado** para acesso estático
+- ✅ Rota dinâmica `/firebase-init.js` injeta credenciais do `.env` em tempo real
+- ✅ Cache desabilitado para garantir credenciais sempre atualizadas
+- ✅ Nenhuma credencial hardcoded em arquivos públicos
 
 **Como funciona a segurança:**
-- ✅ Firebase Security Rules controlam quem pode ler/escrever dados
-- ✅ Apenas usuários autenticados (@grupohi.com.br) têm acesso
-- ✅ Rules são configuradas no Firebase Console (servidor)
-- ✅ Mesmo com a API key, usuários não autorizados não conseguem acessar dados
+- 🔒 `.env` no servidor (protegido, não versionado)
+- 🔒 Firebase Security Rules controlam acesso aos dados
+- 🔒 Apenas usuários autenticados (@grupohi.com.br) têm acesso
+- 🔒 Credenciais são injetadas dinamicamente quando solicitadas
+
+**Nota**: Firebase API keys não são secrets (ver [docs](https://firebase.google.com/docs/projects/api-keys)), mas ainda assim mantemos as credenciais centralizadas no `.env` para facilitar gerenciamento e seguir best practices de DevOps.
 
 ## ⚠️ Arquivos que NUNCA devem ser expostos
 
