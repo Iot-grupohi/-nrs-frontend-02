@@ -8,6 +8,22 @@ package-lock.json
 .env.development
 .env.test
 .env.production
+.env.*
+
+# Arquivos de backup e temporários
+*.bak
+*.backup
+*.old
+*.orig
+*.swp
+*.swo
+*~
+
+# Configurações sensíveis
+firebase-config.js
+*-config.js
+credentials.json
+secrets.json
 
 # Logs
 logs
@@ -15,10 +31,12 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 
 # Sistema operacional
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # IDEs
 .vscode/
@@ -39,3 +57,7 @@ build/
 # Testes
 coverage/
 .nyc_output/
+
+# PM2
+.pm2/
+ecosystem.config.js

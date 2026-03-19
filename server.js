@@ -6,15 +6,41 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// CORS mais restritivo - apenas o próprio domínio
+const corsOptions = {
+    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['https://nrs.grupohi.com.br', 'http://localhost:3000'],
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
-// Serve arquivos estáticos, mas bloqueia o acesso a firebase-config.js
+// Lista de arquivos sensíveis bloqueados
+const blockedFiles = [
+    'firebase-config.js',
+    'firebase-config.js.bak',
+    '.env',
+    '.env.local',
+    '.env.production',
+    'package.json',
+    'package-lock.json',
+    'server.js'
+];
+
+// Serve arquivos estáticos com proteção
 app.use(express.static(path.join(__dirname, 'web-dashboard'), {
     setHeaders: (res, filePath) => {
-        if (filePath.endsWith('firebase-config.js')) {
+        const fileName = path.basename(filePath);
+        
+        // Bloquear arquivos sensíveis
+        if (blockedFiles.some(blocked => fileName.endsWith(blocked))) {
             res.status(403).send('Access Denied');
+            return;
         }
+        
+        // Adicionar headers de segurança
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
     }
 }));
 
