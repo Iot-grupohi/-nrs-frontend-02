@@ -44,15 +44,10 @@ app.get('/firebase-init.js', (req, res) => {
     const encodedConfig = Buffer.from(configString).toString('base64');
     
     const firebaseInitScript = `
-// Inicialização do Firebase - Credenciais ofuscadas
-// NÃO MODIFIQUE ESTE ARQUIVO - Gerado dinamicamente pelo servidor
-// Protegido por Firebase Security Rules
-
 let db = null;
 let firebaseInitialized = false;
 let initializationPromise = null;
 
-// Configuração ofuscada (decodificada em runtime)
 const _0x4a2b = '${encodedConfig}';
 const _0x3c1f = (s) => JSON.parse(atob(s));
 
