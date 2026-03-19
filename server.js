@@ -27,26 +27,34 @@ const blockedFiles = [
     'server.js'
 ];
 
-// Endpoint dinâmico para firebase-init.js (injeta credenciais do .env)
+// Endpoint dinâmico para firebase-init.js (injeta credenciais ofuscadas do .env)
 app.get('/firebase-init.js', (req, res) => {
+    // Ofuscar as credenciais usando Base64
+    const configString = JSON.stringify({
+        apiKey: process.env.FIREBASE_API_KEY,
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.FIREBASE_APP_ID
+    });
+    
+    // Codificar em Base64 para ofuscar
+    const encodedConfig = Buffer.from(configString).toString('base64');
+    
     const firebaseInitScript = `
-// Inicialização do Firebase - Credenciais injetadas do servidor
-// NÃO MODIFIQUE ESTE ARQUIVO - Ele é gerado dinamicamente pelo servidor
+// Inicialização do Firebase - Credenciais ofuscadas
+// NÃO MODIFIQUE ESTE ARQUIVO - Gerado dinamicamente pelo servidor
+// Protegido por Firebase Security Rules
 
 let db = null;
 let firebaseInitialized = false;
 let initializationPromise = null;
 
-// Configuração do Firebase (injetada do .env do servidor)
-const firebaseConfig = ${JSON.stringify({
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    databaseURL: process.env.FIREBASE_DATABASE_URL,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID
-}, null, 4)};
+// Configuração ofuscada (decodificada em runtime)
+const _0x4a2b = '${encodedConfig}';
+const _0x3c1f = (s) => JSON.parse(atob(s));
 
 // Função para inicializar o Firebase
 async function initializeFirebase() {
@@ -58,18 +66,16 @@ async function initializeFirebase() {
     }
     initializationPromise = (async () => {
         try {
-            console.log('Iniciando inicialização do Firebase...');
+            const config = _0x3c1f(_0x4a2b);
             if (!firebase.apps || firebase.apps.length === 0) {
-                firebase.initializeApp(firebaseConfig);
-                console.log('Firebase App inicializado');
+                firebase.initializeApp(config);
             }
             db = firebase.firestore();
             window.db = db;
             firebaseInitialized = true;
-            console.log('✅ Firebase inicializado com sucesso!');
             return { db, initialized: true };
         } catch (error) {
-            console.error('❌ Erro ao inicializar Firebase:', error);
+            console.error('Erro ao inicializar Firebase:', error);
             initializationPromise = null;
             throw error;
         }
@@ -85,21 +91,19 @@ window.waitForFirebase = async function() {
     return await initializeFirebase();
 };
 
-// Inicializa automaticamente quando o script é carregado
+// Inicializa automaticamente
 (async () => {
     try {
         await initializeFirebase();
     } catch (error) {
-        console.error('Erro na inicialização automática do Firebase:', error);
+        console.error('Erro na inicialização:', error);
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 icon: 'error',
                 title: 'Erro de Conexão',
-                text: 'Não foi possível conectar ao Firebase. Por favor, recarregue a página.',
+                text: 'Não foi possível conectar. Recarregue a página.',
                 confirmButtonText: 'Recarregar'
-            }).then(() => {
-                window.location.reload();
-            });
+            }).then(() => window.location.reload());
         }
     }
 })();
