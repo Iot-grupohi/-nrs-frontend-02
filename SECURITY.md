@@ -26,11 +26,19 @@
 - ✅ Renovação automática configurada
 - ✅ Redirect automático HTTP → HTTPS
 
-### Firestore Security Rules
-As credenciais do Firebase no frontend são seguras porque:
-- A segurança real está nas **Firestore Security Rules**
-- Apenas usuários autenticados podem acessar dados
-- Regras de leitura/escrita configuradas no Firebase Console
+### Firebase Configuration
+**Por que as credenciais Firebase estão no código frontend?**
+
+As Firebase API keys são **públicas por design** (veja [documentação oficial](https://firebase.google.com/docs/projects/api-keys)):
+- Firebase API keys **NÃO** são secrets como senhas
+- São projetadas para serem incluídas em código público
+- A segurança real vem das **Firebase Security Rules**, não da obscuridade das keys
+
+**Como funciona a segurança:**
+- ✅ Firebase Security Rules controlam quem pode ler/escrever dados
+- ✅ Apenas usuários autenticados (@grupohi.com.br) têm acesso
+- ✅ Rules são configuradas no Firebase Console (servidor)
+- ✅ Mesmo com a API key, usuários não autorizados não conseguem acessar dados
 
 ## ⚠️ Arquivos que NUNCA devem ser expostos
 

@@ -1,9 +1,21 @@
-// Inicialização do Firebase de forma segura
-// Busca configuração do servidor via API protegida
+// Inicialização do Firebase
+// Nota: Firebase API keys são públicos por design (ver: https://firebase.google.com/docs/projects/api-keys)
+// A segurança é garantida pelas Firebase Security Rules, não pela obscuridade das keys
 
 let db = null;
 let firebaseInitialized = false;
 let initializationPromise = null;
+
+// Configuração do Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyC2wdGyqHKntFJKgjbu8gx2L0Fi740Ws7w",
+    authDomain: "hipag-02.firebaseapp.com",
+    databaseURL: "https://hipag-02-default-rtdb.firebaseio.com",
+    projectId: "hipag-02",
+    storageBucket: "hipag-02.appspot.com",
+    messagingSenderId: "1096728529428",
+    appId: "1:1096728529428:web:6f8be1d07a713a223d3501"
+};
 
 // Função para inicializar o Firebase
 async function initializeFirebase() {
@@ -21,14 +33,6 @@ async function initializeFirebase() {
     initializationPromise = (async () => {
         try {
             console.log('Iniciando inicialização do Firebase...');
-            
-            // Busca configuração do servidor (protegido por CORS)
-            const response = await fetch('/api/firebase-config');
-            if (!response.ok) {
-                throw new Error('Falha ao carregar configuração do Firebase');
-            }
-            
-            const firebaseConfig = await response.json();
             
             // Verifica se o Firebase já foi inicializado
             if (!firebase.apps || firebase.apps.length === 0) {
